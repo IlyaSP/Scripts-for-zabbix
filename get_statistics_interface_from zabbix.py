@@ -91,7 +91,7 @@ def get_statistics(work_queue):
 
 try:
     start = datetime.datetime.now()
-    z = ZabbixAPI('http://10.116.2.100', user='permogorsky_is@moscow', password='')  # connect to zabbix server
+    z = ZabbixAPI('http://10.177.3.10', user='user@local.test', password='pass')  # connect to zabbix server
     answer = z.do_request('apiinfo.version')
     print("Version:", answer['result'])
 
