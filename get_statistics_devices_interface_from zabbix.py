@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from pyzabbix import ZabbixAPI
 import re
 import operator
@@ -53,7 +55,6 @@ def get_statistics(work_queue):
             else:
                 key = 'None'
 
-
         if key != 'None':
             """
             If the value variable 'key' not equal to 'None', get value of incoming and outgoing traffic on 
@@ -64,9 +65,9 @@ def get_statistics(work_queue):
             key_traffic_in = 'ifInOctets' + key
             key_traffic_out = 'ifOutOctets' + key
             item_traffic_in = z.item.get(hostids=host_id, output=['name', 'lastvalue', 'key_'],
-                                            search={'key_': key_traffic_in})
+                                         search={'key_': key_traffic_in})
             item_traffic_out = z.item.get(hostids=host_id, output=['name', 'lastvalue', 'key_'],
-                                              search={'key_': key_traffic_out})
+                                          search={'key_': key_traffic_out})
 
             if len(item_traffic_in) == 0 | len(item_traffic_out) == 0:
                 trafic_in = 0
@@ -89,20 +90,22 @@ def get_statistics(work_queue):
         print('Queue: %s done' % i)
         # print(u'Очередь: %s завершилась' % i)
 
+
 try:
     start = datetime.datetime.now()
-    z = ZabbixAPI('http://10.177.3.10', user='user@local.test', password='pass')  # connect to zabbix server
+    z = ZabbixAPI('http://10.116.2.100', user='permogorsky_is@moscow', password='')  # connect to zabbix server
     answer = z.do_request('apiinfo.version')
     print("Version:", answer['result'])
 
     groups_id = []
     groups = z.hostgroup.get(output=['itemid', 'name'])  # get all host groups on the server
+
     for group in groups:
         """ 
         If name group matches the pattern, put the group number in the list 'group_id' 
         Если имя группы сщвпадает с регулярным выражением, помещаем номер группы в список 'group_id' 
         """
-        if re.search(r'.*ranch.*', group['name']):
+        if re.search(r'.*ranch.*', group["name"]):
             groups_id.append(group['groupid'])
             print(group['groupid'], group['name'])
             continue
@@ -112,17 +115,17 @@ try:
     if len(groups_id) == 0:
         raise SystemExit(111)
     else:
-         hosts = []
-         for groupids in groups_id:
-             """
-             Search of obtained groups and getting list of hosts in the group
-             Перебор полученных групп и получение списка хостов входящих в эти группы. Заполнение этими хостами массива
-             в котором хранятся хосты из всех групп
-             """
-             hosts_in_group = z.host.get(groupids=groupids, output=['hostid', 'name'])
+        hosts = []
+        for groupids in groups_id:
+            """
+            Search of obtained groups and getting list of hosts in the group
+            Перебор полученных групп и получение списка хостов входящих в эти группы. Заполнение этими хостами массива
+            в котором хранятся хосты из всех групп
+            """
+            hosts_in_group = z.host.get(groupids=groupids, output=['hostid', 'name'])
 
-             for host in hosts_in_group:
-                 hosts.append(host)
+            for host in hosts_in_group:
+                hosts.append(host)
     # print(hosts)
 
     dict_traffic_in = {}  # dictionary for storing a pair of values. name - incoming traffic on interface
@@ -159,11 +162,11 @@ try:
     """
     sorted_traffic_in = sorted(dict_traffic_in.items(), key=operator.itemgetter(1), reverse=True)
     for i in sorted_traffic_in:
-        print(i[0] + ': ', str(round(dict_traffic_in.get(i[0])/1048576, 2)) + ' Mbit/s/', str(round(dict_traffic_out.get(i[0])/1048576, 2))+ ' Mbit/s')
+        print(i[0] + ': ', str(round(dict_traffic_in.get(i[0]) / 1048576, 2)) + ' Mbit/s/',
+              str(round(dict_traffic_out.get(i[0]) / 1048576, 2)) + ' Mbit/s')
 
     end = datetime.datetime.now()
     print("lead time: ", end - start)
 
 except Exception as e:
     print(e)
-
